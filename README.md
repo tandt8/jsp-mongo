@@ -1,1 +1,1 @@
-# jsp-mongo
+# vue-spring-mongo
