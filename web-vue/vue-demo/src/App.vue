@@ -5,7 +5,12 @@
 </div>
 <div class="q-pa-lg flex flex-center">
     <q-pagination
-      v-model="current"
+      :modelValue="current"
+      @update:modelValue = "newValue => {
+        current = newValue;
+        subject.next(newValue);
+      }"
+      value = "current"
       color="teal"
       :max= dataLength
       :max-pages="4"
@@ -16,8 +21,8 @@
 </template>
 
 <script>
-import { from } from 'rxjs';
-import { take } from 'rxjs/operators';
+import { from, Subject } from 'rxjs';
+import { skip, take } from 'rxjs/operators';
 import { ref } from 'vue';
 import HelloWorld from './components/HelloWorld.vue';
 import SearchDetail from './components/SearchDetail.vue';
@@ -32,7 +37,7 @@ const details = [{ header: 'Link doc', detail: 'This is some text in a paragraph
 { header: 'Link doc', detail: 'This is some text in a paragraph' },
 { header: 'Link doc', detail: 'This is some text in a paragraph' }];
 let dataLength;
-const currents = ref(1);
+const subject = new Subject(1);
 if (details.length % 4 === 0) {
   dataLength = details.length / 4;
 } else {
@@ -42,7 +47,6 @@ const dataFilter = [];
 from(details).pipe(take(4)).subscribe((x) => {
    dataFilter.push(x);
 });
-console.log(currents.value);
 export default {
   name: 'LayoutDefault',
 
@@ -53,14 +57,25 @@ export default {
 
   setup() {
     return {
-      current: currents,
+      current: ref(1),
     };
   },
   data() {
     return {
         dataFilter,
         dataLength,
+        subject,
     };
+  },
+  mounted() {
+    subject.subscribe((x) => {
+    console.log(x);
+    const newData = [];
+    from(details).pipe(skip((x - 1) * 4), take(4)).subscribe((y) => {
+     newData.push(y);
+    });
+      this.dataFilter = newData;
+    });
   },
 };
 </script>
