@@ -6,10 +6,12 @@
     <q-btn class="col-1 btn-search" color="secondary"  label="Search" @click ="clickme(text)"
     q-btn/>
   </div>
-<div class="q-my-xl" v-for=  " (detail,index) in dataFilter " :key="index">
+<div v-if="dataFilter.length > 0">
+  <div  class="q-my-xl"  v-for=  " (detail,index) in dataFilter " :key="index">
   <SearchDetail :dataDetail =detail />
 </div>
-<div class="q-pa-lg flex flex-center">
+</div>
+<div class="q-pa-lg flex flex-center" v-if="dataFilter.length > 0">
     <q-pagination
       :modelValue="current"
       @update:modelValue = "newValue => {
@@ -23,6 +25,16 @@
       :ellipses="false"
       :boundary-numbers="false"
     />
+  </div>
+  <div v-else-if="isLoading" class="q-pa-md flex flex-center">
+    <q-circular-progress
+      indeterminate
+      rounded
+      size="80px"
+      color="teal"
+      class="q-ma-md"
+    ></q-circular-progress>
+
   </div>
 </template>
 
@@ -38,6 +50,7 @@ const details = [];
 let dataLength = 0;
 const subject = new Subject(1);
 const dataFilter = [];
+let isLoading = false;
 export default {
   name: 'LayoutDefault',
 
@@ -54,15 +67,21 @@ export default {
     return {
         dataFilter,
         dataLength,
-        subject
+        subject,
+        isLoading
     };
   },
   methods: {
     async clickme(data) {
+      this.isLoading = true;
+      this.$forceUpdate();
       details.length =0;
       this.dataFilter.length = 0;
       this.dataLength = 0;
       const newData = await axios.post('http://localhost:8081/InvertedIndex', { word: data });
+      if(newData.status == 200){
+        this.isLoading = false;
+      }
       details.push(...newData.data.map(e => new DetailModel(e.file,e.paragraph)));
 
 

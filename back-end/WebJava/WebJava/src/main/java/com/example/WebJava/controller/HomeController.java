@@ -4,6 +4,7 @@ import com.example.WebJava.SearchModel.IndexModel;
 import com.example.WebJava.SearchModel.InputModel;
 import com.example.WebJava.SearchModel.MapModel;
 import com.example.WebJava.SearchModel.ResponseModel;
+import io.reactivex.rxjava3.core.BackpressureStrategy;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Scheduler;
 import io.reactivex.rxjava3.core.Single;
@@ -56,10 +57,10 @@ public class HomeController {
               return listfile == null ? new String[0]: listfile.replaceAll(" ","").split(",") ;
         }).flatMap(Stream::of).collect(Collectors.toSet());
 
-       var listFiles =Observable.fromIterable(files).map(e -> {
+       var listFiles =Observable.fromIterable(files).toFlowable(BackpressureStrategy.BUFFER).map(e -> {
 
            BufferedReader reader = new BufferedReader(new FileReader("D:/jsp-mongo/back-end/WebJava/WebJava/src/main/resources/doccuments/" + e +".txt"));
-           var para = reader.lines().collect(Collectors.joining(""));
+           var para = reader.lines().collect(Collectors.joining(" "));
            return new IndexModel(e,para);
        }).collect(Collectors.toSet());
 
